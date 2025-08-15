@@ -28,18 +28,6 @@ func (s *Scanner) NextToken() token.Token {
 
 	var tok token.Token
 
-	switch s.pastTok.Type {
-	case token.DOUBLE_QUOTE:
-		tok.Type = token.STRING
-		tok.Literal = s.readStr()
-		s.pastTok = tok
-		return tok
-	case token.STRING:
-		tok = s.newToken(token.DOUBLE_QUOTE)
-		s.pastTok = token.Token{}
-		return tok
-	}
-
 	switch s.ch {
 	case ':':
 		tok = s.newToken(token.COLON)
@@ -50,7 +38,12 @@ func (s *Scanner) NextToken() token.Token {
 	case '+':
 		tok = s.newToken(token.PLUS)
 	case '"':
-		tok = s.newToken(token.DOUBLE_QUOTE)
+		s.readChar()
+
+		tok.Type = token.STRING
+		tok.Literal = s.readStr()
+
+		s.readChar()
 	case 0:
 		tok.Type = token.EOF
 		tok.Literal = ""

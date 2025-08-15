@@ -11,16 +11,15 @@ const (
 	EOF   TokenType = "EOF"
 	IDENT TokenType = "IDENT"
 
-	NUMBER TokenType = "NUMBER"
-	STRING TokenType = "STRING"
+	NUMBER  TokenType = "NUMBER"
+	STRING  TokenType = "STRING"
+	BOOLEAN TokenType = "BOOLEAN"
 
 	COLON        TokenType = ":"
 	SEMICOLON    TokenType = ";"
 	PLUS         TokenType = "+"
 	ASSIGN       TokenType = "="
 	DOUBLE_QUOTE TokenType = `"`
-	TRUE         TokenType = "true"
-	FALSE        TokenType = "false"
 
 	LET TokenType = "LET"
 
@@ -31,8 +30,8 @@ const (
 
 var keywords = map[string]TokenType{
 	"let":   LET,
-	"true":  TRUE,
-	"false": FALSE,
+	"true":  BOOLEAN,
+	"false": BOOLEAN,
 }
 
 var types = map[string]TokenType{

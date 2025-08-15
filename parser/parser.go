@@ -46,7 +46,21 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 }
 
 func (p *Parser) expectPeekValueType() bool {
-	return p.peekTok.Type == token.TYPE_NUMBER
+	switch p.peekTok.Type {
+	case token.TYPE_NUMBER, token.TYPE_STRING, token.TYPE_BOOLEAN:
+		return true
+	default:
+		return false
+	}
+}
+
+func (p *Parser) expectPeekValue() bool {
+	switch p.peekTok.Type {
+	case token.NUMBER, token.STRING, token.BOOLEAN:
+		return true
+	default:
+		return false
+	}
 }
 
 func New(sc *scanner.Scanner) *Parser {
@@ -65,7 +79,7 @@ func (p *Parser) parseVariableDeclaration() *ast.VariableDeclaration {
 		return nil
 	}
 	p.nextTok()
-	
+
 	stmt.Name = p.currTok.Literal
 
 	if p.expectPeek(token.COLON) {
@@ -83,7 +97,7 @@ func (p *Parser) parseVariableDeclaration() *ast.VariableDeclaration {
 	}
 	p.nextTok()
 
-	if !p.expectPeek(token.NUMBER) {
+	if !p.expectPeekValue() {
 		return nil
 	}
 	p.nextTok()

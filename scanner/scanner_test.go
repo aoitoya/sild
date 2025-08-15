@@ -31,9 +31,7 @@ func TestNextToken(t *testing.T) {
 		{token.COLON, ":"},
 		{token.TYPE_STRING, "string"},
 		{token.ASSIGN, "="},
-		{token.DOUBLE_QUOTE, `"`},
 		{token.STRING, `hello`},
-		{token.DOUBLE_QUOTE, `"`},
 		{token.SEMICOLON, ";"},
 
 		// let isActive: boolean = true;
@@ -42,7 +40,7 @@ func TestNextToken(t *testing.T) {
 		{token.COLON, ":"},
 		{token.TYPE_BOOLEAN, "boolean"},
 		{token.ASSIGN, "="},
-		{token.TRUE, "true"},
+		{token.BOOLEAN, "true"},
 		{token.SEMICOLON, ";"},
 
 		// let count: number = 0;
@@ -60,9 +58,7 @@ func TestNextToken(t *testing.T) {
 		{token.COLON, ":"},
 		{token.TYPE_STRING, "string"},
 		{token.ASSIGN, "="},
-		{token.DOUBLE_QUOTE, `"`},
 		{token.STRING, `world`},
-		{token.DOUBLE_QUOTE, `"`},
 		{token.SEMICOLON, ";"},
 
 		{token.EOF, ""},
@@ -123,9 +119,7 @@ func TestNextTokenSingleLine(t *testing.T) {
 				{token.COLON, ":"},
 				{token.TYPE_STRING, "string"},
 				{token.ASSIGN, "="},
-				{token.DOUBLE_QUOTE, `"`},
 				{token.STRING, "hello world"},
-				{token.DOUBLE_QUOTE, `"`},
 				{token.SEMICOLON, ";"},
 				{token.EOF, ""},
 			},
@@ -142,7 +136,7 @@ func TestNextTokenSingleLine(t *testing.T) {
 				{token.COLON, ":"},
 				{token.TYPE_BOOLEAN, "boolean"},
 				{token.ASSIGN, "="},
-				{token.FALSE, "false"},
+				{token.BOOLEAN, "false"},
 				{token.SEMICOLON, ";"},
 				{token.EOF, ""},
 			},

@@ -38,5 +38,8 @@ type VariableDeclaration struct {
 
 func (v *VariableDeclaration) TokenLiteral() {}
 func (v *VariableDeclaration) String() string {
+	if v == nil {
+		return "<nil>"
+	}
 	return fmt.Sprintf("name: %q, type: %q, value: %q", v.Name, v.Type, v.Value)
 }

@@ -15,6 +15,10 @@ func TestParseProgram(t *testing.T) {
 		expectedValue string
 	}{
 		{"let x: number = 42;", "x", "number", "42"},
+		{`let name: string = "hello";`, "name", "string", "hello"},
+		{"let isActive: boolean = true;", "isActive", "boolean", "true"},
+		{"let count: number = 0;", "count", "number", "0"},
+		{`let message: string = "world";`, "message", "string", "world"},
 	}
 
 	for i, tt := range tests {
