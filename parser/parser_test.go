@@ -9,42 +9,115 @@ import (
 
 func TestParseProgram(t *testing.T) {
 	tests := []struct {
+		name          string
 		input         string
 		expectedName  string
 		expectedType  string
 		expectedValue string
+		expectError   bool
 	}{
-		{"let x: number = 42;", "x", "number", "42"},
-		{`let name: string = "hello";`, "name", "string", "hello"},
-		{"let isActive: boolean = true;", "isActive", "boolean", "true"},
-		{"let count: number = 0;", "count", "number", "0"},
-		{`let message: string = "world";`, "message", "string", "world"},
+		{
+			name:          "number assignment",
+			input:         "let x: number = 42;",
+			expectedName:  "x",
+			expectedType:  "number",
+			expectedValue: "42",
+		},
+		{
+			name:          "string assignment",
+			input:         `let name: string = "hello";`,
+			expectedName:  "name",
+			expectedType:  "string",
+			expectedValue: "hello",
+		},
+		{
+			name:          "boolean true assignment",
+			input:         "let isActive: boolean = true;",
+			expectedName:  "isActive",
+			expectedType:  "boolean",
+			expectedValue: "true",
+		},
+		{
+			name:          "boolean false assignment",
+			input:         "let isDone: boolean = false;",
+			expectedName:  "isDone",
+			expectedType:  "boolean",
+			expectedValue: "false",
+		},
+		{
+			name:          "zero value number",
+			input:         "let count: number = 0;",
+			expectedName:  "count",
+			expectedType:  "number",
+			expectedValue: "0",
+		},
+		{
+			name:          "empty string",
+			input:         `let message: string = "";`,
+			expectedName:  "message",
+			expectedType:  "string",
+			expectedValue: "",
+		},
+		{
+			name:          "negative number",
+			input:         "let temperature: number = -5;",
+			expectedName:  "temperature",
+			expectedType:  "number",
+			expectedValue: "-5",
+		},
+		{
+			name:        "missing semicolon",
+			input:       "let x: number = 42",
+			expectError: true,
+		},
+		{
+			name:        "missing type annotation",
+			input:       "let x = 42;",
+			expectError: true,
+		},
+		{
+			name:        "missing value",
+			input:       "let x: number = ;",
+			expectError: true,
+		},
+		{
+			name:        "invalid type",
+			input:       "let x: invalid = 42;",
+			expectError: true,
+		},
 	}
 
-	for i, tt := range tests {
-		t.Run(fmt.Sprintf("test_%d", i), func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			p := New(scanner.New(tt.input))
 
-			statements := p.ParseProgram().Statements
+			program := p.ParseProgram()
 
-			if len(statements) == 0 {
+			if tt.expectError {
+				if len(program.Statements) > 0 && program.Statements[0] != nil {
+					t.Fatalf("expected error but got valid statement: %s", program.Statements[0].String())
+				}
+				return
+			}
+
+			if len(program.Statements) == 0 {
 				t.Fatalf("ParseProgram() returned no statements")
 			}
 
-			if statements[0] == nil {
+			if program.Statements[0] == nil {
 				t.Fatalf("statements[0] is nil")
 			}
 
 			expected := fmt.Sprintf("name: %q, type: %q, value: %q",
 				tt.expectedName, tt.expectedType, tt.expectedValue)
-			got := statements[0].String()
+			got := program.Statements[0].String()
 
 			if expected != got {
 				t.Fatalf("input: %s\nexpected: %s\ngot: %s",
 					tt.input, expected, got)
 			}
 
-			fmt.Printf("✅ Test %d passed: %s\n", i, tt.input)
+			t.Logf("✅ Test passed: %s", tt.name)
 		})
 	}
 }

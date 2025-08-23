@@ -18,6 +18,10 @@ const (
 	COLON        TokenType = ":"
 	SEMICOLON    TokenType = ";"
 	PLUS         TokenType = "+"
+	MINUS        TokenType = "-"
+	MUL          TokenType = "*"
+	DIV          TokenType = "/"
+	BANG         TokenType = "!"
 	ASSIGN       TokenType = "="
 	DOUBLE_QUOTE TokenType = `"`
 
