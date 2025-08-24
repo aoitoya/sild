@@ -22,6 +22,8 @@ const (
 	MUL          TokenType = "*"
 	DIV          TokenType = "/"
 	BANG         TokenType = "!"
+	LEFT_PAREN   TokenType = "("
+	RIGHT_PAREN  TokenType = ")"
 	ASSIGN       TokenType = "="
 	DOUBLE_QUOTE TokenType = `"`
 

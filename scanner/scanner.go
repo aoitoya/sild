@@ -45,6 +45,10 @@ func (s *Scanner) NextToken() token.Token {
 		tok = s.newToken(token.DIV)
 	case '!':
 		tok = s.newToken(token.BANG)
+	case '(':
+		tok = s.newToken(token.LEFT_PAREN)
+	case ')':
+		tok = s.newToken(token.RIGHT_PAREN)
 	case '"':
 		s.readChar()
 

@@ -56,7 +56,7 @@ type BinaryExpression struct {
 
 func (b *BinaryExpression) expressionNode() {}
 func (b *BinaryExpression) String() string {
-	return fmt.Sprintf("%s %s %s", b.Left.String(), b.Operator.Literal, b.Right.String())
+	return fmt.Sprintf("(%s %s %s)", b.Left.String(), b.Operator.Literal, b.Right.String())
 }
 
 type NumberLiteral struct {
@@ -94,4 +94,13 @@ type UnaryExpression struct {
 func (u *UnaryExpression) expressionNode() {}
 func (u *UnaryExpression) String() string {
 	return fmt.Sprintf("%s%s", u.Operator.Literal, u.Right.String())
+}
+
+type ParenthesizedExpression struct {
+	Expression Expression
+}
+
+func (p *ParenthesizedExpression) expressionNode() {}
+func (p *ParenthesizedExpression) String() string {
+	return fmt.Sprintf("(%s)", p.Expression.String())
 }

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/toyaAoi/sild/ast"
@@ -35,22 +36,11 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (p *Parser) parseStatement() ast.Statement {
-	switch p.currTok.Type {
-	case token.LET:
-		stmt := p.parseVariableDeclaration()
-		if stmt == nil {
-			return nil
-		}
-		return stmt
-	default:
-		return nil
-	}
-}
-
-func (p *Parser) nextTok() {
+func (p *Parser) nextTok() token.Token {
+	tok := p.currTok
 	p.currTok = p.peekTok
 	p.peekTok = p.s.NextToken()
+	return tok
 }
 
 func (p *Parser) expectPeek(t token.TokenType) bool {
@@ -73,6 +63,19 @@ func New(sc *scanner.Scanner) *Parser {
 	p.nextTok()
 
 	return p
+}
+
+func (p *Parser) parseStatement() ast.Statement {
+	switch p.currTok.Type {
+	case token.LET:
+		stmt := p.parseVariableDeclaration()
+		if stmt == nil {
+			return nil
+		}
+		return stmt
+	default:
+		return nil
+	}
 }
 
 func (p *Parser) parseVariableDeclaration() *ast.VariableDeclaration {
@@ -102,55 +105,63 @@ func (p *Parser) parseVariableDeclaration() *ast.VariableDeclaration {
 	p.nextTok()
 	expr := p.parseExpression()
 	if expr == nil {
+		fmt.Println(107, p)
 		return nil
 	}
 	stmt.Expr = expr
 
-	if p.peekTok.Type != token.SEMICOLON {
+	if p.currTok.Type != token.SEMICOLON {
+		fmt.Println(111, p)
 		return nil
 	}
-	p.nextTok()
 
 	return stmt
 }
 
 func (p *Parser) parseExpression() ast.Expression {
+	// fmt.Println(120, p)
 	return p.parseTerm()
 }
 
 func (p *Parser) parseTerm() ast.Expression {
 	expr := p.parseFactor()
 	if expr == nil {
+		fmt.Println("parseFactor returned nil in parseTerm")
 		return nil
 	}
 
 	for p.match(token.PLUS, token.MINUS) {
 		operator := p.currTok
+		p.nextTok()
 		right := p.parseFactor()
+
 		if right == nil {
+			fmt.Println("parseFactor returned nil in parseTerm loop")
 			return nil
 		}
 		expr = &ast.BinaryExpression{Left: expr, Operator: operator, Right: right}
 	}
-
 	return expr
 }
 
 func (p *Parser) parseFactor() ast.Expression {
 	expr := p.parseUnary()
 	if expr == nil {
+		fmt.Println("parseUnary returned nil in parseFactor")
 		return nil
 	}
 
 	for p.match(token.MUL, token.DIV) {
 		operator := p.currTok
+		p.nextTok()
 		right := p.parseUnary()
+
 		if right == nil {
+			fmt.Println("parseUnary returned nil in parseFactor loop")
 			return nil
 		}
 		expr = &ast.BinaryExpression{Left: expr, Operator: operator, Right: right}
 	}
-
 	return expr
 }
 
@@ -171,11 +182,23 @@ func (p *Parser) parseUnary() ast.Expression {
 func (p *Parser) parsePrimary() ast.Expression {
 	switch p.currTok.Type {
 	case token.NUMBER:
-		return &ast.NumberLiteral{Token: p.currTok}
+
+		return &ast.NumberLiteral{Token: p.nextTok()}
 	case token.STRING:
-		return &ast.StringLiteral{Token: p.currTok}
+
+		return &ast.StringLiteral{Token: p.nextTok()}
 	case token.BOOLEAN:
-		return &ast.BooleanLiteral{Token: p.currTok}
+		return &ast.BooleanLiteral{Token: p.nextTok()}
+	case token.LEFT_PAREN:
+		p.nextTok()
+		expr := p.parseExpression()
+		if expr == nil {
+			return nil
+		}
+		if p.nextTok().Type != token.RIGHT_PAREN {
+			return nil
+		}
+		return expr
 	default:
 		return nil
 	}
