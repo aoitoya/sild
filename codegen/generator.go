@@ -44,7 +44,7 @@ func (g *Generator) generateStatement(stmt Statement) string {
 
 func (g *Generator) generateVariableDeclaration(varDec *ast.VariableDeclaration) string {
 	if varDec.Type == "string" {
-		return fmt.Sprintf("%s := %q", varDec.Name, varDec.Value)
+		return fmt.Sprintf("%s := %q", varDec.Name, varDec.Expr.String())
 	}
-	return fmt.Sprintf("%s := %s", varDec.Name, varDec.Value)
+	return fmt.Sprintf("%s := %s", varDec.Name, varDec.Expr.String())
 }
