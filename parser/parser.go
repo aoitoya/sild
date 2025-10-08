@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/toyaAoi/sild/ast"
@@ -49,7 +48,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 
 func (p *Parser) expectPeekValueType() bool {
 	switch p.peekTok.Type {
-	case token.TYPE_NUMBER, token.TYPE_STRING, token.TYPE_BOOLEAN:
+	case token.TYPE_NUMBER, token.TYPE_STRING, token.TYPE_BOOLEAN, token.TYPE_VOID:
 		return true
 	default:
 		return false
@@ -73,9 +72,102 @@ func (p *Parser) parseStatement() ast.Statement {
 			return nil
 		}
 		return stmt
+	case token.FUNCTION:
+		stmt := p.parseFunctionDeclaration()
+		if stmt == nil {
+			return nil
+		}
+		return stmt
+	case token.RETURN:
+		stmt := p.parseReturnStatement()
+		if stmt == nil {
+			return nil
+		}
+		return stmt
 	default:
 		return nil
 	}
+}
+
+func (p *Parser) parseFunctionDeclaration() *ast.FunctionDeclaration {
+	fn := &ast.FunctionDeclaration{}
+
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
+	p.nextTok()
+
+	fn.Name = p.currTok
+
+	if !p.expectPeek(token.LEFT_PAREN) {
+		return nil
+	}
+	p.nextTok()
+
+	fn.Params = []ast.FunctionParam{}
+	for p.currTok.Type != token.RIGHT_PAREN {
+		if p.expectPeek(token.RIGHT_PAREN) {
+			p.nextTok()
+			break
+		}
+
+		if !p.expectPeek(token.IDENT) {
+			return nil
+		}
+		p.nextTok()
+
+		paramName := p.currTok
+		if !p.expectPeek(token.COLON) {
+			return nil
+
+		}
+		p.nextTok()
+
+		if !p.expectPeekValueType() {
+			return nil
+		}
+		p.nextTok()
+
+		fn.Params = append(fn.Params, ast.FunctionParam{Type: p.currTok, Name: paramName})
+		if !p.expectPeek(token.COMMA) {
+			p.nextTok()
+			break
+		}
+
+		p.nextTok()
+	}
+
+	if !p.expectPeek(token.COLON) {
+		return nil
+	}
+	p.nextTok()
+	if !p.expectPeekValueType() {
+		return nil
+	}
+	p.nextTok()
+	fn.ReturnType = p.currTok
+
+	if !p.expectPeek(token.LEFT_BRACE) {
+		return nil
+	}
+	p.nextTok()
+
+	fn.Body = []ast.Statement{}
+	for p.currTok.Type != token.RIGHT_BRACE {
+		if p.currTok.Type == token.EOF {
+			return nil
+		}
+
+		if p.peekTok.Type == token.RIGHT_BRACE {
+			p.nextTok()
+			break
+		}
+		p.nextTok()
+		fn.Body = append(fn.Body, p.parseStatement())
+	}
+	p.nextTok()
+
+	return fn
 }
 
 func (p *Parser) parseVariableDeclaration() *ast.VariableDeclaration {
@@ -105,13 +197,11 @@ func (p *Parser) parseVariableDeclaration() *ast.VariableDeclaration {
 	p.nextTok()
 	expr := p.parseExpression()
 	if expr == nil {
-		fmt.Println(107, p)
 		return nil
 	}
 	stmt.Expr = expr
 
 	if p.currTok.Type != token.SEMICOLON {
-		fmt.Println(111, p)
 		return nil
 	}
 
@@ -119,14 +209,12 @@ func (p *Parser) parseVariableDeclaration() *ast.VariableDeclaration {
 }
 
 func (p *Parser) parseExpression() ast.Expression {
-	// fmt.Println(120, p)
 	return p.parseTerm()
 }
 
 func (p *Parser) parseTerm() ast.Expression {
 	expr := p.parseFactor()
 	if expr == nil {
-		fmt.Println("parseFactor returned nil in parseTerm")
 		return nil
 	}
 
@@ -136,7 +224,6 @@ func (p *Parser) parseTerm() ast.Expression {
 		right := p.parseFactor()
 
 		if right == nil {
-			fmt.Println("parseFactor returned nil in parseTerm loop")
 			return nil
 		}
 		expr = &ast.BinaryExpression{Left: expr, Operator: operator, Right: right}
@@ -147,7 +234,6 @@ func (p *Parser) parseTerm() ast.Expression {
 func (p *Parser) parseFactor() ast.Expression {
 	expr := p.parseUnary()
 	if expr == nil {
-		fmt.Println("parseUnary returned nil in parseFactor")
 		return nil
 	}
 
@@ -157,7 +243,6 @@ func (p *Parser) parseFactor() ast.Expression {
 		right := p.parseUnary()
 
 		if right == nil {
-			fmt.Println("parseUnary returned nil in parseFactor loop")
 			return nil
 		}
 		expr = &ast.BinaryExpression{Left: expr, Operator: operator, Right: right}
@@ -166,7 +251,6 @@ func (p *Parser) parseFactor() ast.Expression {
 }
 
 func (p *Parser) parseUnary() ast.Expression {
-
 	if p.match(token.BANG, token.MINUS) {
 		operator := p.currTok
 		p.nextTok()
@@ -177,6 +261,22 @@ func (p *Parser) parseUnary() ast.Expression {
 		return &ast.UnaryExpression{Operator: operator, Right: right}
 	}
 	return p.parsePrimary()
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	stmt := &ast.ReturnStatement{Token: p.currTok}
+
+	p.nextTok() // consume 'return'
+
+	// Parse the return value expression
+	stmt.Value = p.parseExpression()
+
+	// Expect a semicolon after the return statement
+	if p.peekTok.Type == token.SEMICOLON {
+		p.nextTok()
+	}
+
+	return stmt
 }
 
 func (p *Parser) parsePrimary() ast.Expression {
@@ -199,6 +299,8 @@ func (p *Parser) parsePrimary() ast.Expression {
 			return nil
 		}
 		return expr
+	case token.IDENT:
+		return &ast.VariableExpression{Token: p.nextTok()}
 	default:
 		return nil
 	}

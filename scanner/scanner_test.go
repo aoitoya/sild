@@ -1,8 +1,9 @@
 package scanner
 
 import (
-	"github.com/toyaAoi/sild/token"
 	"testing"
+
+	"github.com/toyaAoi/sild/token"
 )
 
 func TestNextToken(t *testing.T) {

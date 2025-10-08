@@ -26,7 +26,6 @@ type Program struct {
 
 type Identifier struct {
 	Token token.Token
-	Value string
 }
 
 func (i *Identifier) expressionNode() {}
@@ -103,4 +102,77 @@ type ParenthesizedExpression struct {
 func (p *ParenthesizedExpression) expressionNode() {}
 func (p *ParenthesizedExpression) String() string {
 	return fmt.Sprintf("(%s)", p.Expression.String())
+}
+
+type FunctionParam struct {
+	Type token.Token
+	Name token.Token
+}
+
+func (fp *FunctionParam) String() string {
+	return fmt.Sprintf("%s %s", fp.Name.Literal, mapType(fp.Type.Literal))
+}
+
+type ReturnStatement struct {
+	Token token.Token
+	Value Expression
+}
+
+func (r *ReturnStatement) statementNode() {}
+func (r *ReturnStatement) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	return "return " + r.Value.String()
+}
+
+type FunctionDeclaration struct {
+    Name       token.Token
+    Params     []FunctionParam
+    Body       []Statement
+    ReturnType token.Token
+}
+
+func (f *FunctionDeclaration) statementNode() {}
+func (f *FunctionDeclaration) String() string {
+	if f == nil {
+		return "<nil>"
+	}
+
+	var params []string
+	for _, param := range f.Params {
+		params = append(params, param.String())
+	}
+
+	var body []string
+	for _, stmt := range f.Body {
+		body = append(body, stmt.String())
+	}
+
+	return fmt.Sprintf("name: %q, params: %q, body: %q, return type: %q", f.Name.Literal, params, body, f.ReturnType.Literal)
+}
+
+func mapType(tsType string) string {
+
+	typeMap := map[string]string{
+		"number":  "int",
+		"string":  "string",
+		"boolean": "bool",
+		"void":    "",
+	}
+
+	if goType, exists := typeMap[tsType]; exists {
+		return goType
+	}
+
+	return "any"
+}
+
+type VariableExpression struct {
+	Token token.Token
+}
+
+func (v *VariableExpression) expressionNode() {}
+func (v *VariableExpression) String() string {
+	return v.Token.Literal
 }

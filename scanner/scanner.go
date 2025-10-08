@@ -29,6 +29,8 @@ func (s *Scanner) NextToken() token.Token {
 	var tok token.Token
 
 	switch s.ch {
+	case ',':
+		tok = s.newToken(token.COMMA)
 	case ':':
 		tok = s.newToken(token.COLON)
 	case ';':
@@ -49,6 +51,10 @@ func (s *Scanner) NextToken() token.Token {
 		tok = s.newToken(token.LEFT_PAREN)
 	case ')':
 		tok = s.newToken(token.RIGHT_PAREN)
+	case '{':
+		tok = s.newToken(token.LEFT_BRACE)
+	case '}':
+		tok = s.newToken(token.RIGHT_BRACE)
 	case '"':
 		s.readChar()
 
@@ -63,8 +69,15 @@ func (s *Scanner) NextToken() token.Token {
 		if isLetter(s.ch) {
 			tok.Literal = s.readIdent()
 
-			// type token
-			if s.pastTok.Type == token.COLON && s.peakNextChar() == '=' {
+			// type token - either after colon in type annotation or in variable declaration
+			if s.pastTok.Type == token.COLON {
+				// Check if it's a type name
+				if typ := token.LookupType(tok.Literal); typ != "" {
+					tok.Type = typ
+				} else {
+					tok.Type = token.LookupIdent(tok.Literal)
+				}
+			} else if s.peakNextChar() == '=' {
 				tok.Type = token.LookupType(tok.Literal)
 			} else {
 				tok.Type = token.LookupIdent(tok.Literal)
@@ -91,10 +104,13 @@ func (s *Scanner) skipWhiteSpaces() {
 
 func (s *Scanner) peakNextChar() byte {
 	idx := s.readPos
-	for isWhiteSpace(s.input[idx]) {
+	for idx < len(s.input) && isWhiteSpace(s.input[idx]) {
 		idx++
 	}
 
+	if idx >= len(s.input) {
+		return 0
+	}
 	return s.input[idx]
 }
 
