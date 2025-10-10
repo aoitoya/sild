@@ -165,7 +165,7 @@ func (p *Parser) parseFunctionDeclaration() *ast.FunctionDeclaration {
 		p.nextTok()
 		fn.Body = append(fn.Body, p.parseStatement())
 	}
-	p.nextTok()
+	// p.nextTok()
 
 	return fn
 }
@@ -263,15 +263,38 @@ func (p *Parser) parseUnary() ast.Expression {
 	return p.parsePrimary()
 }
 
+func (p *Parser) parseFunctionCall() ast.Expression {
+	expr := p.currTok
+	
+	if !p.expectPeek(token.LEFT_PAREN) {
+		return p.parsePrimary()
+	}
+
+	p.nextTok()
+	
+	args := []ast.Expression{}
+	for p.currTok.Type != token.RIGHT_PAREN {
+		// if p.expectPeek(token.RIGHT_PAREN) {
+			p.nextTok()
+		// 	break
+		// }
+		args = append(args, p.parseExpression())
+		if p.currTok.Type != token.COMMA {
+			p.nextTok()
+			break
+		}
+	}
+	
+	 ex := &ast.FunctionCallExpression{Token: expr, Args: args}
+	 return ex
+}
+
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.currTok}
 
-	p.nextTok() // consume 'return'
+	p.nextTok()
 
-	// Parse the return value expression
 	stmt.Value = p.parseExpression()
-
-	// Expect a semicolon after the return statement
 	if p.peekTok.Type == token.SEMICOLON {
 		p.nextTok()
 	}
@@ -299,8 +322,13 @@ func (p *Parser) parsePrimary() ast.Expression {
 			return nil
 		}
 		return expr
-	case token.IDENT:
+	case token.IDENT: {
+		if p.expectPeek(token.LEFT_PAREN) {
+			return p.parseFunctionCall()
+		}
+		
 		return &ast.VariableExpression{Token: p.nextTok()}
+	}
 	default:
 		return nil
 	}

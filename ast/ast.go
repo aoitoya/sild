@@ -176,3 +176,21 @@ func (v *VariableExpression) expressionNode() {}
 func (v *VariableExpression) String() string {
 	return v.Token.Literal
 }
+
+type FunctionCallExpression struct {
+	Token token.Token
+	Args  []Expression
+}
+
+func (f *FunctionCallExpression) expressionNode() {}
+func (f *FunctionCallExpression) String() string {
+	args := ""
+	for i,a := range f.Args {
+		if (i > 0) {
+			args+= ", "
+		}
+		args += a.String()
+	}
+
+	return fmt.Sprintf("%s(%s)", f.Token.Literal, args)
+}
