@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/toyaAoi/sild/token"
@@ -65,7 +66,7 @@ func TestNextToken(t *testing.T) {
 		{token.EOF, ""},
 	}
 
-	sc := New(input)
+	sc := New(strings.NewReader(input))
 
 	for i, tt := range tests {
 		tok := sc.NextToken()
@@ -146,7 +147,7 @@ func TestNextTokenSingleLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sc := New(tt.input)
+			sc := New(strings.NewReader(tt.input))
 
 			for i, expected := range tt.expected {
 				tok := sc.NextToken()

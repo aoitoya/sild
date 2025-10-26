@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/toyaAoi/sild/ast"
@@ -90,7 +91,7 @@ func TestParseProgram(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := New(scanner.New(tt.input))
+			p := New(scanner.New(strings.NewReader(tt.input)))
 
 			program := p.ParseProgram()
 
@@ -131,7 +132,7 @@ func TestMultipleStatements(t *testing.T) {
 			let flag: boolean = true;
 		`
 
-	p := New(scanner.New(input))
+	p := New(scanner.New(strings.NewReader(input)))
 	program := p.ParseProgram()
 
 	if len(program.Statements) != 3 {
@@ -173,7 +174,7 @@ func TestWhitespaceHandling(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := New(scanner.New(tt.input))
+			p := New(scanner.New(strings.NewReader(tt.input)))
 			program := p.ParseProgram()
 
 			if len(program.Statements) == 0 {
@@ -240,7 +241,7 @@ func TestExpressionParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := New(scanner.New(tt.input))
+			p := New(scanner.New(strings.NewReader(tt.input)))
 			program := p.ParseProgram()
 
 			if len(program.Statements) == 0 {
@@ -332,7 +333,7 @@ func TestFunctionDeclarationParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := New(scanner.New(tt.tsInput))
+			p := New(scanner.New(strings.NewReader(tt.tsInput)))
 			program := p.ParseProgram()
 
 			if len(program.Statements) == 0 {
@@ -435,7 +436,7 @@ func TestFunctionErrorCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			parser := New(scanner.New(tt.input))
+			parser := New(scanner.New(strings.NewReader(tt.input)))
 			program := parser.ParseProgram()
 
 			if program != nil && len(program.Statements) > 0 {

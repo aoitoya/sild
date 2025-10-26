@@ -257,7 +257,7 @@ func main() {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scanner := scanner.New(tt.input)
+			scanner := scanner.New(strings.NewReader(tt.input))
 			parser := parser.New(scanner)
 			program := parser.ParseProgram()
 			
@@ -362,7 +362,7 @@ func main() {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scanner := scanner.New(tt.input)
+			scanner := scanner.New(strings.NewReader(tt.input))
 			parser := parser.New(scanner)
 			program := parser.ParseProgram()
 			
@@ -428,7 +428,7 @@ func main() {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scanner := scanner.New(tt.input)
+			scanner := scanner.New(strings.NewReader(tt.input))
 			parser := parser.New(scanner)
 			program := parser.ParseProgram()
 			
@@ -480,7 +480,7 @@ func main() {
 }
 `
 
-	scanner := scanner.New(input)
+	scanner := scanner.New(strings.NewReader(input))
 	parser := parser.New(scanner)
 	program := parser.ParseProgram()
 	
@@ -509,7 +509,7 @@ func main() {
 }
 `
 
-	scanner := scanner.New(input)
+	scanner := scanner.New(strings.NewReader(input))
 	parser := parser.New(scanner)
 	program := parser.ParseProgram()
 	
@@ -580,7 +580,7 @@ func main() {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scanner := scanner.New(tt.input)
+			scanner := scanner.New(strings.NewReader(tt.input))
 			parser := parser.New(scanner)
 			program := parser.ParseProgram()
 			

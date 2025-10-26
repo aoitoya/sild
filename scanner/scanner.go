@@ -1,26 +1,42 @@
 package scanner
 
 import (
+	"io"
+
 	"github.com/toyaAoi/sild/token"
 )
 
 type Scanner struct {
-	input   string
-	pos     int
-	readPos int
-	ch      byte
-	pastTok token.Token
+	r        io.Reader
+	buf      []byte
+	pos      int
+	ch       byte
+	pastTok  token.Token
+	eof      bool
+	readErr  error
 }
 
 func (s *Scanner) readChar() {
-	if s.readPos >= len(s.input) {
-		s.ch = 0
-	} else {
-		s.ch = s.input[s.readPos]
+	if s.pos >= len(s.buf) {
+		s.buf = make([]byte, 1024)
+		n, err := s.r.Read(s.buf)
+		if err != nil && err != io.EOF {
+			s.readErr = err
+			s.ch = 0
+			return
+		}
+		s.buf = s.buf[:n]
+		s.pos = 0
+
+		if n == 0 {
+			s.ch = 0
+			s.eof = true
+			return
+		}
 	}
 
-	s.pos = s.readPos
-	s.readPos++
+	s.ch = s.buf[s.pos]
+	s.pos++
 }
 
 func (s *Scanner) NextToken() token.Token {
@@ -103,15 +119,25 @@ func (s *Scanner) skipWhiteSpaces() {
 }
 
 func (s *Scanner) peakNextChar() byte {
-	idx := s.readPos
-	for idx < len(s.input) && isWhiteSpace(s.input[idx]) {
-		idx++
+	// Save current position and character
+	oldPos := s.pos
+	oldCh := s.ch
+	oldBuf := make([]byte, len(s.buf))
+	copy(oldBuf, s.buf)
+
+	// Read next non-whitespace character
+	for isWhiteSpace(s.ch) && !s.eof && s.readErr == nil {
+		s.readChar()
 	}
 
-	if idx >= len(s.input) {
-		return 0
-	}
-	return s.input[idx]
+	ch := s.ch
+
+	// Restore position and character
+	s.pos = oldPos
+	s.ch = oldCh
+	s.buf = oldBuf
+
+	return ch
 }
 
 func (s *Scanner) newToken(tok token.TokenType) token.Token {
@@ -121,29 +147,30 @@ func (s *Scanner) newToken(tok token.TokenType) token.Token {
 }
 
 func (s *Scanner) readIdent() string {
-	pos := s.pos
+	var buf []byte
 	for isLetter(s.ch) {
+		buf = append(buf, s.ch)
 		s.readChar()
 	}
-
-	return s.input[pos:s.pos]
+	return string(buf)
 }
 
 func (s *Scanner) readInt() string {
-	pos := s.pos
+	var buf []byte
 	for isDigit(s.ch) {
+		buf = append(buf, s.ch)
 		s.readChar()
 	}
-
-	return s.input[pos:s.pos]
+	return string(buf)
 }
 
 func (s *Scanner) readStr() string {
-	pos := s.pos
+	var buf []byte
 	for s.ch != '"' && s.ch != 0 {
+		buf = append(buf, s.ch)
 		s.readChar()
 	}
-	return s.input[pos:s.pos]
+	return string(buf)
 }
 
 func isLetter(ch byte) bool {
@@ -154,9 +181,8 @@ func isDigit(ch byte) bool {
 	return ch >= '0' && ch <= '9'
 }
 
-func New(input string) *Scanner {
-	s := &Scanner{input: input}
+func New(r io.Reader) *Scanner {
+	s := &Scanner{r: r, buf: make([]byte, 0, 1024)}
 	s.readChar()
-
 	return s
 }
